@@ -5,7 +5,6 @@ A custom Electron desktop control panel for Beacon Hosting.
 ## Features
 - **Server list** — sidebar with live status dots
 - **Power controls** — Start / Stop / Restart / Kill
-- **Resource gauges** — CPU, RAM, Disk, Network (auto-polling every 5s)
 - **Console** — live log polling + command input
 - **SFTP File Manager** — full-featured:
   - Browse directories, navigate, breadcrumb path
@@ -66,3 +65,11 @@ panels_app/
     ├── styles.css       (all 3 themes)
     └── app.js           (all frontend logic)
 ```
+
+
+### Future additions
+
+- Resource monitor
+- Customizeable themes
+- plugins handeler
+- moveable widgets
