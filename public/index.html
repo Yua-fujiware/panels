@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="sakura">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Panels v1.3 — Custom Beacon Panel</title>
+  <link rel="stylesheet" href="styles.css"/>
+</head>
+<body>
+<div class="page-backdrop"></div>
+<div class="page-overlay"></div>
+<video id="bgVideo" class="bg-video hidden" autoplay loop muted playsinline></video>
+
+<div id="titlebar">
+  <div id="titlebar-drag">
+    <span id="app-logo"><img src="icon.png" class="app-icon" alt=""/> <span>panels</span></span>
+  </div>
+  <div id="titlebar-controls">
+    <button class="tb-btn" id="btn-changelog" title="Changelog">📋</button>
+    <button class="tb-btn" id="btn-errlogs" title="Request logs">⚠</button>
+    <button class="tb-btn" id="btn-panelsettings" title="Settings">⚙</button>
+    <button class="tb-btn" id="btn-minimize">─</button>
+    <button class="tb-btn" id="btn-maximize">□</button>
+    <button class="tb-btn danger" id="btn-close">✕</button>
+  </div>
+</div>
+
+<aside class="side-nav">
+  <div class="side-brand">
+    <div class="side-brand-icon"><img src="icon.png" class="brand-icon" alt=""/></div>
+    <div><div class="brand-title">Panels</div><div class="brand-sub">v1.3 · @_._yua_._</div></div>
+  </div>
+  <div class="side-section">
+    <button id="btnNavHome" class="side-nav-item active">
+      <span class="nav-icon"><img src="https://img.icons8.com/fluency/48/home.png" alt="" class="icon-18"/></span>
+      <span>Home</span>
+    </button>
+  </div>
+  <div class="side-section" style="flex:1;display:flex;flex-direction:column;min-height:0;" id="sectionServers">
+    <button class="section-toggle" data-section="serversBody">
+      <span data-servers-label>Servers</span><span class="section-chevron" id="chevronServers">▾</span>
+    </button>
+    <div class="section-body" id="serversBody" style="flex:1;display:flex;flex-direction:column;min-height:0;">
+      <div class="srv-filter-wrap">
+        <input id="serverFilter" class="srv-filter-input" type="text" placeholder="Search servers…" autocomplete="off"/>
+      </div>
+      <nav id="serverSwitcher" class="server-switcher" style="flex:1;overflow-y:auto;"></nav>
+      <div style="padding:0 6px 6px;">
+        <button id="btnAddServer" class="add-server-btn"><span>＋</span><span>Add server</span></button>
+      </div>
+    </div>
+  </div>
+  <span id="sbServerNav"  style="display:none"></span>
+  <span id="sbServerName" style="display:none"></span>
+  <div class="side-footer">
+    <button id="btnOpenSettings" class="side-footer-btn">
+      <span class="nav-icon"><img src="https://img.icons8.com/fluency/48/settings.png" alt="" class="icon-18"/></span>
+      <span>Settings</span>
+    </button>
+  </div>
+</aside>
+
+<div class="main-area">
+  <header class="topbar" id="homeTopbar">
+    <div class="topbar-inner">
+      <div>
+        <div class="topbar-title" id="homeViewTitle">Servers</div>
+        <div class="topbar-sub"   id="homeViewSub">Beacon · your servers</div>
+      </div>
+      <div class="topbar-right">
+        <button id="refreshNavBtn"     class="topbar-btn" style="display:none">↻</button>
+        <button id="btnHomeRefreshTop" class="topbar-btn">↻ Refresh</button>
+      </div>
+    </div>
+  </header>
+  <header class="topbar hidden" id="serverTopbar">
+    <div class="topbar-inner">
+      <div>
+        <div class="topbar-title" id="topbarTitle">Server</div>
+        <div class="topbar-sub"   id="topbarSub">—</div>
+      </div>
+      <div class="topbar-right">
+        <button id="refreshSrvBtn" class="topbar-btn">↻</button>
+      </div>
+    </div>
+    <div id="tabsRow" class="tabs-row">
+      <button class="tab" data-tab="overview"><img src="https://img.icons8.com/fluency/48/server.png" class="icon-16" alt=""/> Overview</button>
+      <button class="tab" data-tab="terminal"><img src="https://img.icons8.com/fluency/48/console.png" class="icon-16" alt=""/> Terminal</button>
+      <button class="tab" data-tab="files"><img src="https://img.icons8.com/fluency/48/folder.png" class="icon-16" alt=""/> Files</button>
+      <button class="tab" data-tab="minecraft"><img src="https://img.icons8.com/fluency/48/user.png" class="icon-16" alt=""/> Players</button>
+      <button class="tab" data-tab="settings"><img src="https://img.icons8.com/fluency/48/settings.png" class="icon-16" alt=""/> Settings</button>
+    </div>
+  </header>
+  <div class="content-wrap">
+    <section id="homeView">
+      <div id="welcomeView" style="display:none">
+        <div class="welcome-card">
+          <div style="font-size:40px;margin-bottom:12px">🎮</div>
+          <h2 style="font-family:'Syne',sans-serif;font-size:1.4rem;font-weight:800;margin-bottom:8px">Welcome to Panels</h2>
+          <p class="muted small" style="margin-bottom:18px">Open Settings ⚙ to add your API token, then add a server.</p>
+          <button id="btnWelcomeAdd" class="primary-btn">＋ Add Server</button>
+          <div class="form-stack" style="margin-top:16px;max-width:280px;margin-left:auto;margin-right:auto;">
+            <label class="field">Server UUID  <input type="text" id="quickServerId"   placeholder="96f94173-…"/></label>
+            <label class="field">Display Name <input type="text" id="quickServerName" placeholder="My Server"/></label>
+            <button id="btnQuickAdd" class="primary-btn" style="margin-top:4px">Add</button>
+          </div>
+        </div>
+      </div>
+      <div id="homeServerGrid"></div>
+    </section>
+    <section id="serverView" class="hidden">
+      <div id="serverContent" class="section-card"></div>
+    </section>
+  </div>
+</div>
+
+<!-- Petal/Flower Radial menu (Ctrl+K) -->
+<div id="radialMenu" class="radial-backdrop hidden">
+  <div class="petal-flower" id="petalFlower">
+    <div class="petal-center" id="petalCenter">
+      <img id="petalCenterIcon" src="https://img.icons8.com/fluency/48/lightning-bolt.png" class="petal-center-icon" alt=""/>
+      <span class="petal-center-label">Actions</span>
+    </div>
+    <!-- Petal items injected by JS -->
+  </div>
+  <div class="radial-hint"><kbd>Esc</kbd> close · <kbd>Ctrl+K</kbd> open</div>
+</div>
+
+<!-- Quick server switcher (Ctrl+F) -->
+<div id="quickSwitcher" class="quick-switcher-backdrop hidden">
+  <div class="quick-switcher">
+    <div class="qs-input-wrap">
+      <img src="https://img.icons8.com/fluency/48/search.png" class="qs-icon" alt=""/>
+      <input id="qsInput" class="qs-input" type="text" placeholder="Jump to server…" autocomplete="off"/>
+    </div>
+    <div id="qsResults" class="qs-results"></div>
+    <div class="qs-footer">
+      <span><kbd>↑↓</kbd> navigate</span>
+      <span><kbd>↵</kbd> open</span>
+      <span><kbd>Esc</kbd> close</span>
+    </div>
+  </div>
+</div>
+
+<!-- Settings modal -->
+<div id="modalSettings" class="modal">
+  <div class="modal-backdrop" id="modalSettingsBackdrop"></div>
+  <div class="modal-panel settings-modal">
+    <div class="modal-head">
+      <div><h2><img src="https://img.icons8.com/fluency/48/settings.png" class="icon-20" alt=""/> Settings</h2><div class="muted small">Credentials · Theme · Display</div></div>
+      <button class="icon-btn" id="btnCloseSettings">✕</button>
+    </div>
+    <div class="settings-cred-tabs">
+      <button class="cred-tab active" data-cred="beacon">🟠 Beacon</button>
+    </div>
+    <div class="cred-panel" id="credPanelBeacon">
+      <div class="cred-header beacon-header">
+        <div class="cred-logo">🟠</div>
+        <div><div class="cred-name">Beacon Hosting</div><div class="cred-desc">beaconhosting.org · bpat_ token</div></div>
+      </div>
+      <div class="cred-fields">
+        <div class="cred-field"><span>API Token</span>
+          <div class="token-input-wrap">
+            <input type="password" id="sideTokenInput" placeholder="bpat_…" autocomplete="off" spellcheck="false"/>
+            <button class="btn-token-eye" id="btnTokenEye">👁</button>
+          </div>
+        </div>
+        <div class="cred-actions">
+          <button class="btn-token-save" id="btnTokenSave">Save</button>
+          <button class="btn-token-clear" id="btnTokenClear">Clear</button>
+          <span id="tokenStatus" class="token-status"></span>
+        </div>
+      </div>
+    </div>
+    <div class="settings-divider"></div>
+    <div class="settings-section">
+      <div class="settings-section-label">Theme</div>
+      <div class="theme-pills">
+        <button class="theme-pill active" data-theme="sakura">🐾 Sakura</button>
+        <button class="theme-pill" data-theme="neko">🌸 Neko</button>
+        <button class="theme-pill" data-theme="glossy">💎 Glossy</button>
+        <button class="theme-pill" data-theme="moonsedge">🌙 Moonsedge</button>
+      </div>
+    </div>
+    <div class="settings-section">
+      <div class="settings-section-label">Background Gradient</div>
+      <div class="gradient-row">
+        <input type="color" id="gradientColor1" value="#0e0410" class="grad-swatch" title="Start"/>
+        <span class="grad-arrow">→</span>
+        <input type="color" id="gradientColor2" value="#240c20" class="grad-swatch" title="End"/>
+        <button class="icon-btn" id="btnApplyGradient" style="font-size:12px;padding:6px 11px">Apply</button>
+        <button class="icon-btn" id="btnResetGradient" style="font-size:12px;padding:6px 10px;color:var(--danger)">✕</button>
+      </div>
+    </div>
+    <div class="settings-section">
+      <div class="settings-section-label">Display &amp; Performance</div>
+      <div class="perf-mode-row">
+        <button class="perf-mode-btn" data-mode="high-perf" id="btnModeHighPerf"><span class="perf-icon">⚡</span><span class="perf-label">Performance</span><span class="perf-desc">Low GPU</span></button>
+        <button class="perf-mode-btn active" data-mode="balanced" id="btnModeBalanced"><span class="perf-icon">✦</span><span class="perf-label">Balanced</span><span class="perf-desc">Default</span></button>
+        <button class="perf-mode-btn" data-mode="high-fidelity" id="btnModeHighFi"><span class="perf-icon">💎</span><span class="perf-label">Hi-Fi</span><span class="perf-desc">Max</span></button>
+      </div>
+      <div class="perf-sliders">
+        <div class="perf-slider-row"><label class="perf-slider-label">Glass Blur</label><input type="range" id="sliderBlur" min="0" max="50" step="2" value="20" class="perf-slider"/><span class="perf-slider-val" id="valBlur">20px</span></div>
+        <div class="perf-slider-row"><label class="perf-slider-label">Transparency</label><input type="range" id="sliderAlpha" min="0" max="100" step="5" value="70" class="perf-slider"/><span class="perf-slider-val" id="valAlpha">70%</span></div>
+        <div class="perf-slider-row"><label class="perf-slider-label">Glow</label><input type="range" id="sliderGlow" min="0" max="100" step="5" value="70" class="perf-slider"/><span class="perf-slider-val" id="valGlow">70%</span></div>
+        <div class="perf-slider-row"><label class="perf-slider-label">Particles</label><input type="range" id="sliderParticles" min="0" max="100" step="10" value="70" class="perf-slider"/><span class="perf-slider-val" id="valParticles">70%</span></div>
+        <div class="perf-slider-row"><label class="perf-slider-label">Animations</label><input type="range" id="sliderAnims" min="0" max="100" step="25" value="100" class="perf-slider"/><span class="perf-slider-val" id="valAnims">100%</span></div>
+      </div>
+      <div class="perf-toggles">
+        <label class="perf-toggle-row"><span>Reduce motion</span><input type="checkbox" id="toggleReduceMotion" class="perf-checkbox"/></label>
+        <label class="perf-toggle-row"><span>Background image</span><input type="checkbox" id="toggleBgImage" class="perf-checkbox" checked/></label>
+      </div>
+    </div>
+    <div class="settings-section">
+      <div class="settings-section-label">Custom Background</div>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <button class="icon-btn" id="btnSetBg" style="font-size:12px;padding:6px 12px">🖼 Set Image / Video…</button>
+        <button class="icon-btn" id="btnClearBg" style="font-size:12px;padding:6px 10px;color:var(--danger)">✕ Remove</button>
+      </div>
+      <div id="bgPathLabel" class="muted small" style="margin-top:6px;font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></div>
+    </div>
+    <div class="perf-maintenance">
+      <div class="settings-section-label">Maintenance</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="danger-btn" id="btnWipeDataCache" style="font-size:12px;padding:7px 13px">Wipe All Data</button>
+        <button class="icon-btn" id="btnResetPanelSettings" style="font-size:12px;padding:7px 13px">Reset Settings</button>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="modalPanelSettings" style="display:none"></div>
+<div id="modalServer" class="modal">
+  <div class="modal-backdrop" id="modalServerBackdrop"></div>
+  <div class="modal-panel" style="max-width:440px">
+    <div class="modal-head">
+      <div><h2 id="modalServerTitle">Add Server</h2><div class="muted small">Beacon server UUID</div></div>
+      <button class="icon-btn" id="btnCloseServerModal">✕</button>
+    </div>
+    <div class="form-stack">
+      <input type="hidden" id="editServerId"/>
+      <label class="field">Server UUID  <input type="text" id="modalServerId"   placeholder="96f94173-…"/></label>
+      <label class="field">Display Name <input type="text" id="modalServerName" placeholder="My Server"/></label>
+    </div>
+    <div class="card-actions" style="margin-top:18px">
+      <button class="primary-btn" id="btnSaveServer">Save</button>
+      <button class="icon-btn"    id="btnCancelServer">Cancel</button>
+    </div>
+  </div>
+</div>
+<div id="modalRename" class="modal">
+  <div class="modal-backdrop" id="modalRenameBackdrop"></div>
+  <div class="modal-panel" style="max-width:400px">
+    <div class="modal-head"><h2>Rename</h2><button class="icon-btn" id="btnCloseRename">✕</button></div>
+    <label class="field">New name <input type="text" id="renameInput"/></label>
+    <div class="card-actions" style="margin-top:14px">
+      <button class="primary-btn" id="btnConfirmRename">Rename</button>
+      <button class="icon-btn"    id="btnCancelRename">Cancel</button>
+    </div>
+  </div>
+</div>
+<div id="editorModal" class="modal">
+  <div class="modal-backdrop" id="editorBackdrop"></div>
+  <div class="modal-panel editor-modal">
+    <div class="modal-head">
+      <div><h2 id="editorTitle">Editor</h2><div id="editorPath" class="muted small" style="font-family:'JetBrains Mono',monospace;font-size:11px"></div></div>
+      <div class="row-actions">
+        <div class="editor-statusbar"><span id="editorLang">Plain Text</span><span id="editorCursor">Ln 1, Col 1</span><span id="editorUnsaved" class="editor-unsaved hidden">● Unsaved</span></div>
+        <button class="icon-btn"    id="reloadFileBtn">↺</button>
+        <button class="primary-btn" id="saveFileBtn">Save</button>
+        <button class="icon-btn"    id="closeEditorBtn">✕</button>
+      </div>
+    </div>
+    <textarea id="fileEditorArea" class="editor-textarea" spellcheck="false"></textarea>
+  </div>
+</div>
+<div id="modalLogs" class="modal">
+  <div class="modal-backdrop" id="modalLogsBackdrop"></div>
+  <div class="modal-panel modal-large">
+    <div class="modal-head">
+      <div><h2><img src="https://img.icons8.com/fluency/48/log.png" class="icon-20" alt=""/> Logs</h2><div class="muted small">All API requests · newest first</div></div>
+      <div class="row-actions">
+        <button class="danger-btn" id="btnClearLogs" style="font-size:12px;padding:6px 12px">Clear</button>
+        <button class="icon-btn"   id="btnCloseLogs">✕</button>
+      </div>
+    </div>
+    <div style="overflow:auto;max-height:68vh">
+      <table style="width:100%;border-collapse:collapse;font-family:'JetBrains Mono',monospace;font-size:11.5px">
+        <thead><tr style="text-align:left;border-bottom:1px solid var(--line-soft)">
+          <th style="padding:8px 10px;color:var(--text-muted);font-weight:600;width:72px">Time</th>
+          <th style="padding:8px 6px;color:var(--text-muted);font-weight:600;width:62px">Source</th>
+          <th style="padding:8px 6px;color:var(--text-muted);font-weight:600;width:48px">Method</th>
+          <th style="padding:8px 6px;color:var(--text-muted);font-weight:600;width:48px">Status</th>
+          <th style="padding:8px 6px;color:var(--text-muted);font-weight:600;width:48px">ms</th>
+          <th style="padding:8px 6px;color:var(--text-muted);font-weight:600">Endpoint</th>
+        </tr></thead>
+        <tbody id="logTableBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+<div id="playerSkinPanel" class="player-skin-panel hidden">
+  <button class="psp-close" id="btnCloseSkinPanel">✕</button>
+  <div class="psp-header">
+    <div class="psp-avatar"><canvas id="skinCanvas" width="88" height="88"></canvas></div>
+    <div class="psp-meta"><div class="psp-name" id="pspName">—</div><div class="psp-status" id="pspStatus"></div></div>
+  </div>
+  <div id="pspArmor" class="psp-armor">
+    <div class="psp-section-label">Armor <label class="psp-hide-toggle"><input type="checkbox" id="toggleHideArmor"/> hide</label></div>
+    <div id="pspArmorSlots" class="psp-armor-slots"></div>
+    <div id="pspArmorResult"></div>
+  </div>
+  <div class="psp-actions">
+    <div class="psp-section-label">Actions</div>
+    <div id="pspActionGrid" class="psp-action-grid"></div>
+  </div>
+</div>
+
+<!-- ═══════════════ SPLASH SCREEN (first launch) ═══════════════ -->
+<div id="splashScreen" class="splash-screen">
+  <div class="splash-inner">
+    <div class="splash-logo">
+      <img src="icon.png" class="splash-icon" alt=""/>
+      <div class="splash-petals">
+        <span class="petal p1"></span>
+        <span class="petal p2"></span>
+        <span class="petal p3"></span>
+        <span class="petal p4"></span>
+        <span class="petal p5"></span>
+        <span class="petal p6"></span>
+      </div>
+    </div>
+    <div class="splash-title">panels</div>
+    <div class="splash-sub">v1.3 · Loading…</div>
+    <div class="splash-bar"><div class="splash-progress" id="splashProgress"></div></div>
+  </div>
+</div>
+<div id="toast-container"></div>
+<script src="particles.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
