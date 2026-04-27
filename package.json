@@ -1,0 +1,102 @@
+{
+  "name": "panels-beacon",
+  "version": "1.1.1",
+  "description": "Custom Beacon Panel \u2014 Panels app v1.1.1 by @_._yua_._",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dev": "concurrently \"nodemon server.js\" \"electron .\"",
+    "build": "electron-builder --win portable",
+    "build:win": "electron-builder --win portable",
+    "build:mac": "electron-builder --mac dmg",
+    "build:linux": "electron-builder --linux AppImage"
+  },
+  "dependencies": {
+    "express": "^5.1.0",
+    "multer": "^2.0.1",
+    "ssh2-sftp-client": "^10.0.3"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2",
+    "nodemon": "^3.1.9",
+    "electron": "^35.1.0",
+    "electron-builder": "^26.0.12"
+  },
+  "build": {
+    "appId": "com.panels.beacon",
+    "productName": "Panels",
+    "files": [
+      "main.js",
+      "preload.js",
+      "server.js",
+      "public/**",
+      "node_modules/**",
+      "!node_modules/.cache/**",
+      "!node_modules/.bin/**",
+      "!**/*.md",
+      "!**/*.map",
+      "!**/test/**",
+      "!**/tests/**",
+      "!**/spec/**",
+      "!**/docs/**",
+      "!**/example/**",
+      "!**/examples/**",
+      "!**/.github/**",
+      "!**/nodemon*",
+      "!**/concurrently*"
+    ],
+    "asarUnpack": [
+      "server.js",
+      "node_modules/ssh2/**",
+      "node_modules/ssh2-sftp-client/**",
+      "node_modules/cpu-features/**",
+      "node_modules/bufferutil/**",
+      "node_modules/utf-8-validate/**"
+    ],
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "win": {
+      "target": [
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "build/icon.ico",
+      "requestedExecutionLevel": "asInvoker",
+      "artifactName": "Panels.exe"
+    },
+    "portable": {
+      "artifactName": "Panels.exe"
+    },
+    "mac": {
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        }
+      ],
+      "icon": "build/icon.icns",
+      "artifactName": "Panels-${version}.dmg"
+    },
+    "linux": {
+      "target": [
+        {
+          "target": "AppImage",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "build/icon.png",
+      "artifactName": "Panels-${version}.AppImage"
+    }
+  }
+}
